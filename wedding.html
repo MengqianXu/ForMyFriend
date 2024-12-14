@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新婚快乐</title>
+    <style>
+        /* 设置所有元素的边距和内边距为0，并设置box-sizing为border-box，使元素的宽度和高度包括边框和内边距 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 设置body的居中显示，最小高度为100vh，背景颜色为#1a252c */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: #1a252c;
+            color: white;
+            overflow: hidden;
+        }
+        /* 设置返回主页按钮的样式 */
+        .back-to-home {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 10px 20px;
+            background: linear-gradient(45deg, #5f0a87, #a4508b);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-family: 'Georgia', serif;
+            font-size: 1rem;
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        /* 设置容器的相对定位，居中显示，设置transform-origin为preserve-3d */
+        .container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform-origin: preserve-3d;
+        }
+
+        /* 设置box的宽度、高度、相对定位、过渡效果、设置-webkit-box-reflect为下方1px的线性渐变 */
+        .container .box {
+            width: 200px;
+            height: 200px;
+            position: relative;
+            transition: .5s;
+            -webkit-box-reflect: below 1px linear-gradient(transparent, #0002);
+        }
+
+        /* 设置box的绝对定位，宽度、高度为100% */
+        .container .box img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* 设置鼠标悬停时，非悬停元素的边距为-20px，设置filter为drop-shadow(0 0 25px #000) drop-shadow(0 0 25px #000)，设置transform为perspective(500px) rotateY(45deg) scale(0.95) */
+        .container:hover> :not(:hover) {
+            margin: 0 -20px;
+            filter: drop-shadow(0 0 25px #000) drop-shadow(0 0 25px #000);
+            transform: perspective(500px) rotateY(45deg) scale(0.95);
+        }
+
+        /* 设置鼠标悬停时，box的兄弟元素的transform为perspective(500px) rotateY(-45deg) scale(0.95) */
+        .container .box:hover~.box {
+            transform: perspective(500px) rotateY(-45deg) scale(0.95);
+        }
+
+        /* 设置鼠标悬停时，box的transform为perspective(500px) rotateY(0) scale(1.2) */
+        .container .box:hover {
+            transform: perspective(500px) rotateY(0) scale(1.2);
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 999;
+            pointer-events: none;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 2rem;
+            font-family: 'Georgia', serif;
+            color: #ff6f91;
+            margin: 20px 0;
+        }
+
+        /* 设置播放器容器样式，稍微居中 */
+        #player {
+            position: fixed;
+            top: 10%;
+            left: 50%;
+            transform: translate(-50%, -10%);
+            width: 280px;
+            background: rgba(243, 220, 224, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.116);
+            z-index: 1000; /* 高于背景 */
+            color: black;
+        }
+
+        /* 左侧封面图模块 */
+        .music-imgs {
+            position: relative;
+            top: 0;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 15px auto;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease;
+        }
+
+        /* 歌曲信息模块 */
+        #player-content1 {
+            position: absolute;
+            top: 0px;
+            left: 15px;
+            width: 320px;
+            height: 90px;
+            padding: 0 20px 0 130px;
+            background: rgb(127, 100, 250);
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            transition: top 0.3s ease;
+        }
+
+        #player-content1.active {
+            top: -85px;
+        }
+
+      /* 左侧封面图模块 */
+      .music-imgs {
+            position: relative;
+            top: 0;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 15px auto;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease;
+        }
+
+        .music-imgs .img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: url('music.jpg') center center / cover no-repeat;
+        }
+
+        /* 封面旋转动画 */
+        .music-imgs.active {
+            animation: rotateAlbumArt 3s linear infinite;
+        }
+        @keyframes rotateAlbumArt {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .player-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .play-pause {
+            font-size: 20px;
+            color: white;
+            background: #5f0a87;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 50%;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .play-pause:hover {
+            background: #a4508b;
+        }
+
+
+        .btn {
+            cursor: pointer;
+        }
+        
+
+
+    </style>
+</head>
+<body>
+    <canvas id="fireworks"></canvas>
+    <button class="back-to-home" onclick="window.location.href='main.html'">返回主页</button>
+    <div class="background-overlay"></div>
+
+    <div id="player">
+        <div class="music-imgs">
+            <div class="img"></div>
+        </div>
+        <div class="player-controls">
+            <button class="btn play-pause">▶</button>
+        </div>
+        <audio id="audio" src="wedding_song.mp3" loop></audio>
+    </div>
+
+    <h2>新婚快乐 - 照片墙</h2>
+    <div class="container">
+        <div class="box">
+            <img src="photo1.jpg" alt="Photo 1">
+        </div>
+        <div class="box">
+            <img src="photo2.jpg" alt="Photo 2">
+        </div>
+        <div class="box">
+            <img src="photo3.jpg" alt="Photo 3">
+        </div>
+        <div class="box">
+            <img src="photo4.jpg" alt="Photo 4">
+        </div>
+        <div class="box">
+            <img src="photo5.jpg" alt="Photo 5">
+        </div>
+        <div class="box">
+            <img src="photo6.jpg" alt="Photo 6">
+        </div>
+        <div class="box">
+            <img src="photo7.jpg" alt="Photo 7">
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const audio = document.getElementById('audio');
+            const playPauseBtn = document.querySelector('.play-pause');
+            const musicImg = document.querySelector('.music-imgs');
+
+            // 点击播放/暂停按钮
+            playPauseBtn.addEventListener('click', () => {
+                if (audio.paused) {
+                    audio.play();
+                    playPauseBtn.textContent = '❚❚'; // 暂停符号
+                    musicImg.classList.add('active');
+                } else {
+                    audio.pause();
+                    playPauseBtn.textContent = '▶'; // 播放符号
+                    musicImg.classList.remove('active');
+                }
+            });
+
+            // 页面加载时直接播放音乐并开始旋转
+            audio.play();
+            playPauseBtn.textContent = '▶';
+            musicImg.classList.add('active');
+        });
+    </script>
+</body>
+</html>
